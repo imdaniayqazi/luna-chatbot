@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LunaAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background: #080010;
+            font-family: 'Rajdhani', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse at 10% 50%, rgba(120,0,200,0.25) 0%, transparent 55%),
+                radial-gradient(ellipse at 90% 20%, rgba(80,0,160,0.2) 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 100%, rgba(60,0,120,0.15) 0%, transparent 50%);
+            animation: bgPulse 8s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(150,0,255,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(150,0,255,0.04) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 90%;
+            max-width: 720px;
+            height: 92vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            padding: 18px 0 12px;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #9b00ff, #5500aa);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            box-shadow: 0 0 25px rgba(155,0,255,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+            animation: iconPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { box-shadow: 0 0 25px rgba(155,0,255,0.6); }
+            50% { box-shadow: 0 0 45px rgba(155,0,255,0.9), 0 0 80px rgba(155,0,255,0.3); }
+        }
+
+        .logo-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #cc66ff, #ffffff, #9b00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 4px;
+        }
+
+        .tagline {
+            color: rgba(180,100,255,0.6);
+            font-size: 0.72rem;
+            letter-spacing: 6px;
+            margin-top: 4px;
+            text-transform: uppercase;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #aa44ff;
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+            box-shadow: 0 0 8px rgba(170,68,255,0.8);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .status-text {
+            color: rgba(180,100,255,0.7);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+        }
+
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            margin: 12px 0;
+            background: rgba(20,0,40,0.6);
+            border: 1px solid rgba(150,0,255,0.2);
+            border-radius: 24px;
+            backdrop-filter: blur(30px);
+            box-shadow:
+                0 0 60px rgba(100,0,200,0.08),
+                inset 0 0 60px rgba(0,0,0,0.4),
+                0 25px 80px rgba(0,0,0,0.6);
+        }
+
+        .chat-box::-webkit-scrollbar { width: 4px; }
+        .chat-box::-webkit-scrollbar-track { background: transparent; }
+        .chat-box::-webkit-scrollbar-thumb { background: rgba(150,0,255,0.4); border-radius: 2px; }
+
+        .message {
+            display: flex;
+            align-items: flex-end;
+            margin: 14px 0;
+            animation: msgIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes msgIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.94); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .message.user { justify-content: flex-end; }
+        .message.bot { justify-content: flex-start; }
+
+        .bubble {
+            max-width: 68%;
+            padding: 13px 18px;
+            border-radius: 20px;
+            font-size: 0.97rem;
+            line-height: 1.55;
+        }
+
+        .user .bubble {
+            background: linear-gradient(135deg, #7700cc, #aa00ff);
+            color: #f0d9ff;
+            border-bottom-right-radius: 5px;
+            box-shadow: 0 4px 25px rgba(120,0,220,0.5), 0 0 0 1px rgba(180,0,255,0.2);
+        }
+
+        .bot .bubble {
+            background: rgba(100,0,180,0.12);
+            color: #e8d0ff;
+            border: 1px solid rgba(150,0,255,0.25);
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 4px 20px rgba(80,0,160,0.15);
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            margin: 0 10px;
+            flex-shrink: 0;
+        }
+
+        .bot .avatar {
+            background: linear-gradient(135deg, #9b00ff, #5500aa);
+            box-shadow: 0 0 18px rgba(155,0,255,0.6);
+            animation: avatarGlow 2.5s ease-in-out infinite;
+        }
+
+        @keyframes avatarGlow {
+            0%, 100% { box-shadow: 0 0 18px rgba(155,0,255,0.6); }
+            50% { box-shadow: 0 0 30px rgba(155,0,255,1), 0 0 60px rgba(155,0,255,0.3); }
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            padding: 4px 0;
+        }
+
+        .typing-dots span {
+            width: 7px;
+            height: 7px;
+            background: #aa44ff;
+            border-radius: 50%;
+            animation: dot 1.2s ease-in-out infinite;
+        }
+
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes dot {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+            40% { transform: scale(1.1); opacity: 1; }
+        }
+
+        .input-area {
+            display: flex;
+            gap: 12px;
+            padding: 10px 0 15px;
+            align-items: center;
+        }
+
+        input {
+            flex: 1;
+            padding: 15px 22px;
+            background: rgba(40,0,80,0.5);
+            border: 1px solid rgba(150,0,255,0.3);
+            border-radius: 50px;
+            color: #e8d0ff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        input:focus {
+            border-color: rgba(170,0,255,0.7);
+            background: rgba(60,0,100,0.4);
+            box-shadow: 0 0 25px rgba(150,0,255,0.2);
+        }
+
+        input::placeholder { color: rgba(180,100,255,0.35); }
+
+        button {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #8800dd, #aa00ff);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(150,0,255,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        button:hover {
+            transform: scale(1.12) rotate(8deg);
+            box-shadow: 0 6px 30px rgba(150,0,255,0.7);
+        }
+
+        button:active { transform: scale(0.94); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">🌙</div>
+                <div class="logo-text">LunaAI</div>
+            </div>
+            <div class="tagline">Powered by Dania Yasir</div>
+            <div class="status-bar">
+                <div class="status-dot"></div>
+                <div class="status-text">ONLINE & READY</div>
+            </div>
+        </div>
+
+        <div class="chat-box" id="chat-box">
+            <div class="message bot">
+                <div class="avatar">🌙</div>
+                <div class="bubble">Hi! I'm <strong>LunaAI</strong> — powered by Dania Yasir. Ask me anything! ✨</div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Ask LunaAI anything..." autocomplete="off"/>
+            <button onclick="sendMessage()">➤</button>
+        </div>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById("user-input");
+            const msg = input.value.trim();
+            if (!msg) return;
+            addMessage(msg, "user");
+            input.value = "";
+            const typingId = addTyping();
+            try {
+                const res = await fetch("/chat", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({message: msg})
+                });
+                const data = await res.json();
+                removeTyping(typingId);
+                addMessage(data.reply, "bot");
+            } catch(e) {
+                removeTyping(typingId);
+                addMessage("Connection error. Please try again.", "bot");
+            }
+        }
+
+        function addMessage(text, sender) {
+            const box = document.getElementById("chat-box");
+            const div = document.createElement("div");
+            div.className = `message ${sender}`;
+            div.innerHTML = sender === "bot"
+                ? `<div class="avatar">🌙</div><div class="bubble">${text}</div>`
+                : `<div class="bubble">${text}</div>`;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function addTyping() {
+            const box = document.getElementById("chat-box");
+            const id = "typing-" + Date.now();
+            const div = document.createElement("div");
+            div.className = "message bot";
+            div.id = id;
+            div.innerHTML = `<div class="avatar">🌙</div><div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+            return id;
+        }
+
+        function removeTyping(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        document.getElementById("user-input").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") sendMessage();
+        });
+    </script>
+</body>
+</html>
